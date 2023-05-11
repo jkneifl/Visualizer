@@ -233,7 +233,7 @@ class Visualizer(object):
     def play(self):
         if self.run_animation == True:
             self.play_button.setText('Stop')
-            self.timer.start(self.refresh_rate)
+            self.timer.start(int(self.refresh_rate))
             self.run_animation = False
         else:
             self.play_button.setText('Play')
@@ -281,7 +281,7 @@ class Visualizer(object):
         self._update_plot_items()
 
     def _set_refresh_rate(self):
-        self.timer.setInterval(self.refresh_rate / max(0.001, self.slider_refresh_rate.value() / 100))
+        self.timer.setInterval(int(self.refresh_rate / max(0.001, self.slider_refresh_rate.value() / 100)))
 
     def _update(self):
         '''
@@ -300,7 +300,7 @@ class Visualizer(object):
 
         # adjust slider to fit to current time step
         self.timestep += 1
-        self.slider.setValue(self.timestep / (self.times_end + 1) * 100000)
+        self.slider.setValue(int(self.timestep / (self.times_end + 1) * 100000))
         # save frames in case it is requested
         if self.save:
             self.frames.append(self.w.renderToArray((self.resolution[0], self.resolution[1]), format=GL_RGBA))
@@ -614,7 +614,7 @@ class Visualizer(object):
             tick_values = np.linspace(0, 1, n_ticks)
             for i, value in np.ndenumerate(tick_values):
                 tick_color = colormap(value)
-                tick_color = qt.QtGui.QColor(tick_color[0] * 255, tick_color[1] * 255, tick_color[2] * 255)
+                tick_color = qt.QtGui.QColor(int(tick_color[0] * 255), int(tick_color[1] * 255), int(tick_color[2] * 255))
                 self.colorbar.item.addTick(x=tick_values[i], color=tick_color)
         return colors
 
