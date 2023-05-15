@@ -409,6 +409,7 @@ class Visualizer(object):
             self.plot_items.append(sp)
             # the plot items must be added to the Viewwidget to be seen
             self.w.addItem(sp)
+            self.w.setSizePolicy(pg.QtWidgets.QSizePolicy.Policy.Expanding, pg.QtWidgets.QSizePolicy.Policy.Expanding)
 
     def _update_coordinates(self, coordinates, times, camera_distance=None):
         '''
@@ -433,8 +434,8 @@ class Visualizer(object):
                 y_ranges[i] = coordinates[i][:, :, 1].max() - coordinates[i][:, :, 1].min()
             y_ranges = [np.array(y_ranges).max()] * np.array(range(0, len(y_ranges)))
             # y_ranges = np.array([0] + y_ranges)
-        # coordinates = [(XYZ - mean_coordinates) + np.array([0, 1.1 * y_ranges[i], 0]) for i, XYZ in
-        #                enumerate(coordinates)]
+        coordinates = [(XYZ - mean_coordinates) + np.array([0, 1.1 * y_ranges[i], 0]) for i, XYZ in
+                       enumerate(coordinates)]
 
         # generate random points from -10 to 10, z-axis positive]
         self.coords = []
