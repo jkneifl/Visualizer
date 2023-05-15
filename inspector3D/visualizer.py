@@ -426,18 +426,19 @@ class Visualizer(object):
         self.w.setCameraParams(distance=camera_distance)
 
         # center data around [0, 0, 0] so that camera points on center
-        all_coordinates = np.concatenate(coordinates, axis=1)
-        mean_coordinates = all_coordinates.mean(axis=(0, 1))
         y_ranges = np.zeros([len(coordinates), ])
         if self.shift:
             for i in range(len(y_ranges)):
                 y_ranges[i] = coordinates[i][:, :, 1].max() - coordinates[i][:, :, 1].min()
             y_ranges = [np.array(y_ranges).max()] * np.array(range(0, len(y_ranges)))
             # y_ranges = np.array([0] + y_ranges)
-        coordinates = [(XYZ - mean_coordinates) + np.array([0, 1.1 * y_ranges[i], 0]) for i, XYZ in
-                       enumerate(coordinates)]
+        # Apply shifting
+        coordinates = [XYZ + np.array([0, 1.1 * y_ranges[i], 0]) for i, XYZ in enumerate(coordinates)]
+        # Re-center plots after shifting
+        all_coordinates = np.concatenate(coordinates, axis=1)
+        mean_coordinates = all_coordinates.mean(axis=(0, 1))
+        coordinates = [(XYZ - mean_coordinates) for i, XYZ in enumerate(coordinates)]
 
-        # generate random points from -10 to 10, z-axis positive]
         self.coords = []
         for coord in coordinates:
             self.coords.append(coord)
