@@ -38,6 +38,7 @@ class Visualizer(object):
         self.vertex_colors = None
         self.drawEdges = False
         self.save_format = 'gif'
+        self.save_single_frames = False
 
         self.main_window = qt.QtWidgets.QMainWindow()
         self.main_window.setGeometry(0, 110, resolution[0], resolution[1])
@@ -74,8 +75,8 @@ class Visualizer(object):
 
     def animate(self, coordinates, times, faces=None, view: list = [0, 0],
                 color=[], color_scale_limits: list = None, color_bar: str = 'linear', shift: bool = True,
-                save_animation: bool = False, save_format='gif', animation_name: str = '', point_size: int = 1,
-                rotate_camera: bool = False, camera_distance: float = None, _mode_ui: bool = False,
+                save_animation: bool = False, save_format='gif', save_single_frames=False, animation_name: str = '',
+                point_size: int = 1, rotate_camera: bool = False, camera_distance: float = None, _mode_ui: bool = False,
                 close_on_end: bool = False, colormap='viridis', drawEdges=False):
         """
         create a timeseries of pointclouds and animate it
@@ -493,11 +494,14 @@ class Visualizer(object):
         if not os.path.isdir(f'results/videos/{animation_path}/'):
             os.makedirs(os.path.join(f'results/videos/{animation_path}/'))
         frames = [Image.fromarray(frame) for frame in self.frames]
-        png_files = []
-        for i, frame in enumerate(frames):
-            png_file = os.path.abspath(f'results/videos/{animation_path}/{name}_{i}.png')
-            frame.save(png_file)
-            png_files.append(png_file)
+
+        if self.save_single_frames:
+            png_files = []
+            for i, frame in enumerate(frames):
+                png_file = os.path.abspath(f'results/videos/{animation_path}/{name}_{i}.png')
+                frame.save(png_file)
+                png_files.append(png_file)
+
         video_name = os.path.abspath(f'results/videos/{animation_path}/{name}.{format}')
         if format == 'gif':
             # save file as format in results directory
@@ -505,15 +509,38 @@ class Visualizer(object):
                            append_images=frames[1:],
                            save_all=True,
                            duration=50, loop=0)
-        elif format == 'mp4':
-            frame = cv2.imread(png_files[0])
+        else:
+
+            # Define the video codec and frame rate based on the format
+            if format == 'avi':
+                fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                fps = 30.0
+            elif format == 'mp4':
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                fps = 24.0
+            elif format == 'mov':
+                fourcc = cv2.VideoWriter_fourcc(*'jpeg')
+                fps = 30.0
+            elif format == 'wmv':
+                fourcc = cv2.VideoWriter_fourcc(*'WMV2')
+                fps = 25.0
+            else:
+                raise ValueError('Unsupported video format')
+
+            frame = np.array(frames[0])
             height, width, layers = frame.shape
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            video = cv2.VideoWriter(video_name, fourcc, 20.0, (width, height))
-            for png_file in png_files:
-                video.write(cv2.imread(png_file))
-            cv2.destroyAllWindows()
+            if layers == 4:
+                color_convert = cv2.COLOR_RGBA2BGR
+                logging.warning(" Currently an alpha channel is only supported for gifs")
+            elif layers == 3:
+                color_convert = cv2.COLOR_RGB2BGR
+            video = cv2.VideoWriter(video_name, fourcc, fps=fps, frameSize=(width, height))
+
+            for frame in frames:
+                opencvImage = cv2.cvtColor(np.array(frame), color_convert)
+                video.write(opencvImage)
             video.release()
+
         if self.color_scale_limits is not None:
             color_limits = np.array([[self.color_scale_limits[0], self.color_scale_limits[1]]])
             plt.figure(figsize=(4, 0.5))
