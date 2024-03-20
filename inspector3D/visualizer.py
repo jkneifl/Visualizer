@@ -14,7 +14,7 @@ import matplotlib.colors as mcolors
 
 
 class Visualizer(object):
-    def __init__(self, frames_per_sec: float = 20, background_color=[1, 1, 1, 0], grid: bool = False,
+    def __init__(self, frames_per_sec: float = 20, background_color=[1, 1, 1, 1], grid: bool = False,
                  resolution: list = [2560, 1600]):
         '''
         Visualizer for scatter plots and mesh items. It can be used to animate and compare simulations.
@@ -125,6 +125,7 @@ class Visualizer(object):
         # update attributes
         self.run_animation = True
         self.save_format = save_format
+        self.save_single_frames = save_single_frames
         self.timestep = 0
         self.faces = faces
         self.color = color
@@ -410,6 +411,7 @@ class Visualizer(object):
                     size=self.point_size,
                 )
                 sp.setGLOptions('opaque')
+
             self.plot_items.append(sp)
             # the plot items must be added to the Viewwidget to be seen
             self.w.addItem(sp)
@@ -498,16 +500,20 @@ class Visualizer(object):
         if self.save_single_frames:
             png_files = []
             for i, frame in enumerate(frames):
+                logging.info(f'Saving frame {i} of {len(frames)}')
                 png_file = os.path.abspath(f'results/videos/{animation_path}/{name}_{i}.png')
                 frame.save(png_file)
                 png_files.append(png_file)
 
         video_name = os.path.abspath(f'results/videos/{animation_path}/{name}.{format}')
+        logging.info(f'Saving video to {video_name}')
         if format == 'gif':
             # save file as format in results directory
             frames[0].save(video_name,
                            append_images=frames[1:],
                            save_all=True,
+                           disposal=2,
+                           transparency=0,
                            duration=50, loop=0)
         else:
 
@@ -692,25 +698,7 @@ class Visualizer(object):
             obj_file.close()
             logging.info(f'created .obj file no {int(i / frame_rate)}/{int(n_obj / frame_rate)}')
 
-    def mode_to_obj_sequence(self, reduction, reference_coordinates, faces, mode_number: int = 0,
-                             amplification: float = 100, dirname="results/obj_sequence",
-                             filename="frame", frame_rate=None):
-        '''
-        function to save a sequence of obj files for a given mode so that it can be animated in 3d engines like unity.
-        :param reduction: instance of class Reduction (which represents certain reduction methods like POD)
-        :param reference_coordinates: reference coordinates to which the mode displacement will be added
-        :param mode_number: {int} default: 0, number of visualized mode (e.g., mode_number=0 will display first mode)
-        :param amplification: {float} default: 100, amplification factor by which the mode will be amplified
-        :param kwargs: for all further parameter look in the definition of animate()
-        :return:
-        '''
-        self.reduction = reduction
-        self.mode_number = mode_number
-        self.mode_ampl = amplification
-        self.reference_coordinates = reference_coordinates
-        coordinates, _ = self._calculate_current_mode()
-        self.animation_to_obj_sequence(coordinates, faces, dirname=dirname, filename=filename,
-                                       frame_rate=frame_rate)
+
 
     @staticmethod
     def get_axes_limits(XYZ_data):
@@ -746,3 +734,90 @@ class Visualizer(object):
         y_lim = (mean_y - 0.35 * diff, mean_y + 0.35 * diff)
         z_lim = (mean_z - 0.35 * diff, mean_z + 0.35 * diff)
         return x_lim, y_lim, z_lim
+
+    def mode_to_obj_sequence(self, reduction, reference_coordinates, faces, mode_number: int = 0,
+                             amplification: float = 100, dirname="results/obj_sequence",
+                             filename="frame", frame_rate=None):
+        '''
+        function to save a sequence of obj files for a given mode so that it can be animated in 3d engines like unity.
+        :param reduction: instance of class Reduction (which represents certain reduction methods like POD)
+        :param reference_coordinates: reference coordinates to which the mode displacement will be added
+        :param mode_number: {int} default: 0, number of visualized mode (e.g., mode_number=0 will display first mode)
+        :param amplification: {float} default: 100, amplification factor by which the mode will be amplified
+        :param kwargs: for all further parameter look in the definition of animate()
+        :return:
+        '''
+        self.reduction = reduction
+        self.mode_number = mode_number
+        self.mode_ampl = amplification
+        self.reference_coordinates = reference_coordinates
+        coordinates, _ = self._calculate_current_mode()
+        self.animation_to_obj_sequence(coordinates, faces, dirname=dirname, filename=filename,
+                                       frame_rate=frame_rate)
+
+    def _calculate_current_mode(self):
+        '''
+        calculate a mode in physical space
+        :return coordinates: {array} n_timesteps x n_dofs: repeated reference coordinates of the system
+        :return times: {array} n_timesteps x n_dofs: vector containing the animated timesteps
+        '''
+
+        # check if given
+        if self.mode_number >= self.reduction.reduced_order or self.mode_number < 0:
+            dlg = qt.QtWidgets.QDialog()
+            label = qt.QtWidgets.QLabel(dlg)
+            label.setText(f"Mode number {self.mode_number} is out of range [1, {self.reduction.reduced_order}]")
+            button = qt.QtWidgets.QPushButton("ok", dlg)
+            dlg.setWindowTitle("Warning")
+            layout = qt.QtWidgets.QGridLayout()
+            layout.addWidget(label, 0, 0)
+            layout.addWidget(button, 0, 1)
+            button.clicked.connect(dlg.close)
+            dlg.setLayout(layout)
+            dlg.exec()
+            self.mode_number = 1
+            self.mode_edit.setText(str(self.mode_number))
+
+        n_modes = self.reduction.reduced_order_vis
+        mode_selector = np.zeros((1, n_modes))
+        mode_selector.put([self.mode_number], 1)
+
+        if isinstance(self.mode_ampl, np.ndarray):
+            mean, std = self.mode_ampl[self.mode_number]
+            amplifications = np.expand_dims(np.hstack((np.linspace(mean - 2*std, mean + 2*std, num=50),
+                                                       np.linspace(mean + 2*std, mean - 2*std, num=50))), 1) * mode_selector
+        else:
+            # self.mode_ampl
+            amplifications = np.expand_dims(np.hstack((np.linspace(1, -1, num=50), np.linspace(-1, 1, num=50))), 1) * \
+                             mode_selector * self.mode_ampl[:, 1]
+        mode = self.reduction.inverse_transform(amplifications, vis=True)
+        mode = mode.reshape((mode.shape[0], self.reference_coordinates.shape[0], self.reference_coordinates.shape[1]))
+        times = range(100)
+        mode = np.concatenate([mode])
+        return np.concatenate(self.displacements_2_cartesian_coords(mode, self.reference_coordinates)), times
+
+    @staticmethod
+    def displacements_2_cartesian_coords(displacement, reference_coordinates):
+        '''
+        calculate absolute coordinates by adding displacements to reference coordinates
+        :param displacement: time series of displacements
+        :param reference_coordinates: reference coordinates of the model
+        :return coordinates:
+        '''
+
+        if isinstance(displacement, np.ndarray):
+            while len(displacement.shape) < 4:
+                displacement = np.expand_dims(displacement, axis=1)
+
+        # in case only the results of a single simulation are given, add axis for simulations
+        if not isinstance(displacement, list):
+            displacement = list(displacement)
+
+        # check if displacement has already correct shape
+        if displacement[0].shape[1:] != reference_coordinates.shape:
+            displacement = [disp.reshape([disp.shape[0], *reference_coordinates.shape]) for disp in displacement]
+
+        # add displacement to reference_coordinates
+        coordinates = [(np.expand_dims(reference_coordinates, 0) + disp) for disp in displacement]
+
+        return coordinates

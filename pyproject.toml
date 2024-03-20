@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inspector3D"
+version = "0.3"
+authors = [
+  { name="Jonas Kneifl", email="jonas.kneifl@itm.uni-stuttgart.com" },
+]
+description = "Tool for three-dimensional animations of geometries like FE meshes"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "PyOpenGL>=3.1.6",
+    "PyOpenGL-accelerate>",
+    "PyQt6>=6.3.0",
+    "pyqtgraph>=0.12.3",
+    "opencv-python",
+    "matplotlib",
+    "Pillow"
+]
+keywords = [
+    "visualiztion",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.setuptools]
+packages = ["inspector3D"]
+py-modules = []
+
+[project.urls]
+Homepage = "https://github.com/jkneifl/Inspector3D"
+Issues = "https://github.com/jkneifl/Inspector3D/issues"
