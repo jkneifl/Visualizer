@@ -1,4 +1,4 @@
-# inspector3D
+# Visualizer-3D 
 Tool for three-dimensional animations of geometries like FE meshes.  
 
 ![gui](doc/gui.png)
