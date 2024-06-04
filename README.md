@@ -37,7 +37,8 @@ It has a method `animate` that can be used to create animations of geometries.
 from visualizer import Visualizer
 
 coordinates = ...
-
+faces = ...
+colors = ...
 # create a visualizer object
 visualizer = Visualizer()
 visualizer.animate(
@@ -46,6 +47,21 @@ visualizer.animate(
 ```
 It can animate point clouds, or meshes if the corresponding faces are provided.
 For a detailed description of the parameters, see the docstring of the `animate` method.
-An example of a simple animation is shown below.
+
+You can also visualize multiple objects with different colors (specified by rgb values for every coordinate, by a string, or by error_values over an color map) and e.g. as points
+random_colors = np.random.rand(*coordinates.shape[0:2])
+```python
+visualizer.animate([coordinates, coordinates, coordinates],
+            faces=[None, faces, faces],
+            color=["blue", colors, random_colors],
+            shift=True,
+            camera_distance=1000,
+            )
+```
+![multiple](doc/multiple.png)
+
+In the `examples` folder, you can find an example script with according data on how to use the `Visualizer` class.
+
+You can also export the animations as gif or mp4 files. An example is shown below:
 
 ![arm](doc/arm_rotating.gif)

@@ -110,7 +110,10 @@ class Visualizer(object):
         self._clear_all_widgets()
         self._add_ui_elements(_mode_ui)
         if times is None:
-            times = np.arange(coordinates[0].shape[0])
+            if isinstance(coordinates, list):
+                times = np.arange(coordinates[0].shape[0])
+            else:
+                times = np.arange(coordinates.shape[0])
         self.times = times
         self.times_end = len(times) - 1
 
@@ -632,12 +635,12 @@ class Visualizer(object):
                 color = np.repeat(np.expand_dims(color, axis=1), n_elements, axis=1).T
 
         # if no axis for the time is given repeat color for all timesteps
-        if len(times) not in color.shape:
+        if n_timesteps != color.shape[0]:
             color = np.repeat(np.expand_dims(color, axis=0), n_timesteps, axis=0)
 
         # in case only 3 values per color are given append them (rgb + alpha):
         if color.shape[-1] != 4:
-            color = np.concatenate([color, np.ones([color.shape[0], color.shape[1], 1])], axis=2)
+            color = np.concatenate([color, np.ones([*color.shape[:-1], 1])], axis=-1)
 
         # create list with time items as entries
         colors = []
