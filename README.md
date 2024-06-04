@@ -23,8 +23,8 @@ pip install visualizer-3d
 Clone this repository and install it to your local environment as package using pip:
 
 ```bash
-git clone git@github.com:jkneifl/visualizer.git
-cd cd visualizer
+git clone git@github.com:jkneifl/Visualizer.git
+cd Visualizer
 pip install -e .
 ```
 
