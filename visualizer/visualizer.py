@@ -1,4 +1,3 @@
-# default imports
 import os
 import cv2
 from datetime import datetime
@@ -15,7 +14,7 @@ import matplotlib.colors as mcolors
 
 class Visualizer(object):
     def __init__(self, frames_per_sec: float = 20, background_color=[1, 1, 1, 1], grid: bool = False,
-                 resolution: list = [2560, 1600]):
+                 resolution: list = [2560, 1600], shader="lighting"):
         '''
         Visualizer for scatter plots and mesh items. It can be used to animate and compare simulations.
         :param frames_per_sec: {float} default: 20, amount of visualized frames per second
@@ -23,6 +22,8 @@ class Visualizer(object):
             background is drawn
         :param grid: {bool} default: False, if true a grid is drawn in the animation
         :param resolution: {list} default: [2560, 1600], resolution of the animation window
+        :param shader: {string} default: 'lighting', shader which is used to visualize the mesh items options are:
+            'normalColor', 'viewNormalColor', 'shaded', 'lighting', 'edgeHilight',
         '''
         self.run_animation = True
         self.refresh_rate = 1 / frames_per_sec * 1000
@@ -39,6 +40,7 @@ class Visualizer(object):
         self.drawEdges = False
         self.save_format = 'gif'
         self.save_single_frames = False
+        self.shader = shader
 
         self.main_window = qt.QtWidgets.QMainWindow()
         self.main_window.setGeometry(0, 110, resolution[0], resolution[1])
@@ -73,7 +75,7 @@ class Visualizer(object):
         self.main_widget.setLayout(self.layout)
         self.main_window.show()
 
-    def animate(self, coordinates, times, faces=None, view: list = [0, 0],
+    def animate(self, coordinates, times=None, faces=None, view: list = [0, 0],
                 color=[], color_scale_limits: list = None, color_bar: str = 'linear', shift: bool = True,
                 save_animation: bool = False, save_format='gif', save_single_frames=False, animation_name: str = '',
                 point_size: int = 1, rotate_camera: bool = False, camera_distance: float = None, _mode_ui: bool = False,
@@ -107,6 +109,8 @@ class Visualizer(object):
         """
         self._clear_all_widgets()
         self._add_ui_elements(_mode_ui)
+        if times is None:
+            times = np.arange(coordinates[0].shape[0])
         self.times = times
         self.times_end = len(times) - 1
 
@@ -398,7 +402,7 @@ class Visualizer(object):
                     color=self.colors[i][0],
                     drawEdges=self.drawEdges,
                     edgeColor=(0.2, 0.2, 0.2, 1),
-                    shader='lighting',  # viewNormalColor, shaded
+                    shader=self.shader,
                     glOptions='opaque',
                     computeNormals=True
                 )
