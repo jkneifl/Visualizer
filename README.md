@@ -30,8 +30,7 @@ pip install -e .
 
 ## Usage
 
-The base class `Visualizer` can be used to create animations of geometries.
-It has a method `animate` that can be used to create animations of geometries.
+The base class `Visualizer` serves as tool for the visualization with its main method `animate` that can be used to create and export animations of geometries.
 
 ```python
 from visualizer import Visualizer
@@ -49,8 +48,9 @@ It can animate point clouds, or meshes if the corresponding faces are provided.
 For a detailed description of the parameters, see the docstring of the `animate` method.
 
 You can also visualize multiple objects with different colors (specified by rgb values for every coordinate, by a string, or by error_values over an color map) and e.g. as points
-random_colors = np.random.rand(*coordinates.shape[0:2])
+
 ```python
+random_colors = np.random.rand(*coordinates.shape[0:2])
 visualizer.animate([coordinates, coordinates, coordinates],
             faces=[None, faces, faces],
             color=["blue", colors, random_colors],
