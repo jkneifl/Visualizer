@@ -1,6 +1,0 @@
-opencv-python
-pyqtgraph
-PyOpenGL
-PyQt6
-Pillow
-matplotlib
