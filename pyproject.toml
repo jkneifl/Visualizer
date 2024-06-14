@@ -32,8 +32,6 @@ classifiers = [
 ]
 
 [tool.setuptools]
-packages = ["visualizer"]
-py-modules = []
 
 [project.urls]
 Homepage = "https://github.com/jkneifl/visualizer"
