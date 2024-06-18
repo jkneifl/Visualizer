@@ -79,7 +79,7 @@ class Visualizer(object):
                 color=[], color_scale_limits: list = None, color_bar: str = 'linear', shift: bool = True,
                 save_animation: bool = False, save_format='gif', save_single_frames=False, animation_name: str = '',
                 point_size: int = 1, rotate_camera: bool = False, camera_distance: float = None, _mode_ui: bool = False,
-                close_on_end: bool = False, colormap='viridis', drawEdges=False):
+                close_on_end: bool = False, colormap='viridis', drawEdges=False, play_at_start=False):
         """
         create a timeseries of pointclouds and animate it
         :param coordinates: {array like} of shape {n_time_steps, n_points, 3} timeseries of coordinates
@@ -130,7 +130,7 @@ class Visualizer(object):
         coordinates, faces = quantities
 
         # update attributes
-        self.run_animation = True
+        self.run_animation = play_at_start
         self.save_format = save_format
         self.save_single_frames = save_single_frames
         self.timestep = 0
@@ -157,8 +157,8 @@ class Visualizer(object):
         # create frames
         self._add_plot_items()
         self.main_window.show()
-        self.app.exec()
         self.play()
+        self.app.exec()
 
     def _set_save(self):
         self.save = True
