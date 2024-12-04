@@ -13,9 +13,15 @@ import matplotlib.colors as mcolors
 
 
 class Visualizer(object):
-    def __init__(self, frames_per_sec: float = 20, background_color=[1, 1, 1, 1], grid: bool = False,
-                 resolution: list = [2560, 1600], shader="lighting"):
-        '''
+    def __init__(
+        self,
+        frames_per_sec: float = 20,
+        background_color=[1, 1, 1, 1],
+        grid: bool = False,
+        resolution: list = [2560, 1600],
+        shader="lighting",
+    ):
+        """
         Visualizer for scatter plots and mesh items. It can be used to animate and compare simulations.
         :param frames_per_sec: {float} default: 20, amount of visualized frames per second
         :param background_color:  default: [1, 1, 1, 0] (transparent), string or list describing a color in which the
@@ -24,11 +30,9 @@ class Visualizer(object):
         :param resolution: {list} default: [2560, 1600], resolution of the animation window
         :param shader: {string} default: 'lighting', shader which is used to visualize the mesh items options are:
             'normalColor', 'viewNormalColor', 'shaded', 'lighting', 'edgeHilight',
-        '''
+        """
         self.run_animation = True
         self.refresh_rate = 1 / frames_per_sec * 1000
-        self.mode_number = 1
-        self.mode_ampl = 10
         self.save = False
         self.timestep = 0
         self.app = qt.QtWidgets.QApplication([])
@@ -38,7 +42,7 @@ class Visualizer(object):
         self.close_on_end = False
         self.vertex_colors = None
         self.drawEdges = False
-        self.save_format = 'gif'
+        self.save_format = "gif"
         self.save_single_frames = False
         self.shader = shader
 
@@ -53,7 +57,7 @@ class Visualizer(object):
         menu_bar.addMenu(view_menu)
         color_action = qt.QtGui.QAction("&Backgound Color", view_menu)
         point_size_action = qt.QtGui.QAction("&Point Size", view_menu)
-        rotation_action = qt.QtGui.QAction('Rotate%', view_menu, checkable=True)
+        rotation_action = qt.QtGui.QAction("Rotate%", view_menu, checkable=True)
         color_action.triggered.connect(self._set_background_color)
         point_size_action.triggered.connect(self._set_point_size)
         rotation_action.triggered.connect(self._set_rotation)
@@ -62,24 +66,41 @@ class Visualizer(object):
         view_menu.addAction(rotation_action)
 
         # Toolbar
-        exitAct = qt.QtGui.QAction('Save', self.main_window)
-        exitAct.setShortcut('Ctrl+Q')
+        exitAct = qt.QtGui.QAction("Save", self.main_window)
+        exitAct.setShortcut("Ctrl+Q")
         exitAct.triggered.connect(self._set_save)
 
-        self.toolbar = self.main_window.addToolBar('Exit')
+        self.toolbar = self.main_window.addToolBar("Exit")
         self.toolbar.addAction(exitAct)
         # self.main_window.addToolBar("Save")
 
         self.layout = qt.QtWidgets.QGridLayout()
-        self._add_ui_elements(False)
+        self._add_ui_elements()
         self.main_widget.setLayout(self.layout)
         self.main_window.show()
 
-    def animate(self, coordinates, times=None, faces=None, view: list = [0, 0],
-                color=[], color_scale_limits: list = None, color_bar: str = 'linear', shift: bool = True,
-                save_animation: bool = False, save_format='gif', save_single_frames=False, animation_name: str = '',
-                point_size: int = 1, rotate_camera: bool = False, camera_distance: float = None, _mode_ui: bool = False,
-                close_on_end: bool = False, colormap='viridis', drawEdges=False, play_at_start=False):
+    def animate(
+        self,
+        coordinates,
+        times=None,
+        faces=None,
+        view: list = [0, 0],
+        color=[],
+        color_scale_limits: list = None,
+        color_bar: str = "linear",
+        shift: bool = True,
+        save_animation: bool = False,
+        save_format="gif",
+        save_single_frames=False,
+        animation_name: str = "",
+        point_size: int = 1,
+        rotate_camera: bool = False,
+        camera_distance: float = None,
+        close_on_end: bool = False,
+        colormap="viridis",
+        drawEdges=False,
+        play_at_start=False,
+    ):
         """
         create a timeseries of pointclouds and animate it
         :param coordinates: {array like} of shape {n_time_steps, n_points, 3} timeseries of coordinates
@@ -108,7 +129,7 @@ class Visualizer(object):
         :return:
         """
         self._clear_all_widgets()
-        self._add_ui_elements(_mode_ui)
+        self._add_ui_elements()
         if times is None:
             if isinstance(coordinates, list):
                 times = np.arange(coordinates[0].shape[0])
@@ -169,16 +190,15 @@ class Visualizer(object):
         for i in reversed(range(self.layout.count())):
             self.layout.itemAt(i).widget().setParent(None)
 
-    def _add_ui_elements(self, _mode_ui):
-        '''
+    def _add_ui_elements(self):
+        """
         add ui elements such as buttons, sliders, views, etc.
-        :param _mode_ui: {bool} if modes are animated additional ui elements are added
-        '''
+        """
 
         # main animation window
         self.w = gl.GLViewWidget()
-        self.w.opts['distance'] = 5
-        self.w.setWindowTitle('MorMl')
+        self.w.opts["distance"] = 5
+        self.w.setWindowTitle("MorMl")
         self.w.setBackgroundColor(self.background_color)
         self.w.setGeometry(0, 110, 1920, 1080)
         if self.grid:
@@ -190,68 +210,47 @@ class Visualizer(object):
         self.timer.timeout.connect(self._update)
 
         ## add ui elements
-        self.play_button = qt.QtWidgets.QPushButton('Play')
+        self.play_button = qt.QtWidgets.QPushButton("Play")
         self.slider = qt.QtWidgets.QSlider(qt.QtCore.Qt.Orientation.Horizontal)
         self.slider.setRange(0, 100000)
         # self.slider.setSingleStep(1)
         self.slider.setValue(0)
-        self.slider_refresh_rate = qt.QtWidgets.QSlider(qt.QtCore.Qt.Orientation.Horizontal)
+        self.slider_refresh_rate = qt.QtWidgets.QSlider(
+            qt.QtCore.Qt.Orientation.Horizontal
+        )
         self.slider_refresh_rate.setRange(0, 200)
         self.slider_refresh_rate.setValue(100)
 
-        self.mode_edit_label = qt.QtWidgets.QLabel()
-        self.mode_edit_label.setText('Mode:')
-        int_validator = qt.QtGui.QIntValidator()
-        self.mode_edit = qt.QtWidgets.QLineEdit()
-        self.mode_edit.setText(str(self.mode_number + 1))
-        self.mode_edit.setValidator(int_validator)
-        self.mode_ampl_label = qt.QtWidgets.QLabel()
-        self.mode_ampl_label.setText('Amplification:')
-        self.mode_ampl_edit = qt.QtWidgets.QLineEdit()
-        self.mode_ampl_edit.setText(str(self.mode_ampl))
-        double_validator = qt.QtGui.QDoubleValidator()
-        self.mode_ampl_edit.setValidator(double_validator)
-        self.colorbar = pg.GradientWidget(orientation='right', interactive=True)
+        self.colorbar = pg.GradientWidget(orientation="right", interactive=True)
         # add functions to buttons
         self.play_button.clicked.connect(self.play)
         self.slider.sliderMoved.connect(self._slide)
         self.slider_refresh_rate.valueChanged.connect(self._set_refresh_rate)
-        self.mode_edit.editingFinished.connect(self.set_mode_number)
-        self.mode_ampl_edit.editingFinished.connect(self._set_mode_amplification)
 
         # define layout
         self.layout.addWidget(self.w, 0, 0, 1, 7)
         self.layout.addWidget(self.play_button, 1, 0)
         self.layout.addWidget(self.slider, 1, 1)
         self.layout.addWidget(self.slider_refresh_rate, 1, 2)
-        self.layout.addWidget(self.mode_edit_label, 1, 3)
-        self.layout.addWidget(self.mode_edit, 1, 4)
-        self.layout.addWidget(self.mode_ampl_label, 1, 5)
-        self.layout.addWidget(self.mode_ampl_edit, 1, 6)
         self.layout.addWidget(self.colorbar, 0, 8)
-
-        # if modes are animated additional ui elements are added
-        if not _mode_ui:
-            self.mode_edit_label.hide()
-            self.mode_edit.hide()
-            self.mode_ampl_label.hide()
-            self.mode_ampl_edit.hide()
 
         # add the main widget to the window
         self.main_window.setCentralWidget(self.main_widget)
 
     def play(self):
         if self.run_animation == True:
-            self.play_button.setText('Stop')
+            self.play_button.setText("Stop")
             self.timer.start(int(self.refresh_rate))
             self.run_animation = False
         else:
-            self.play_button.setText('Play')
+            self.play_button.setText("Play")
             self.timer.stop()
             self.run_animation = True
 
     def _set_point_size(self):
-        point_size, ok = qt.QtWidgets.QInputDialog.getText(self.main_window, 'input dialog', 'Set Point Size')
+        point_size, ok = qt.QtWidgets.QInputDialog.getText(
+            self.main_window, "input dialog", "Set Point Size"
+        )
         self.point_size = float(point_size)
         self._update()
 
@@ -259,44 +258,28 @@ class Visualizer(object):
         self.rotate = not self.rotate
 
     def _set_background_color(self):
-        background_color, ok = qt.QtWidgets.QInputDialog.getText(self.main_window, 'input dialog', 'Set Point Size')
+        background_color, ok = qt.QtWidgets.QInputDialog.getText(
+            self.main_window, "input dialog", "Set Point Size"
+        )
         self.background_color = background_color
         self.w.setBackgroundColor(self.background_color)
         self._update()
 
         # self.main_widget.show()
 
-    def _set_mode_amplification(self):
-        self.mode_ampl = float(self.mode_ampl_edit.text())
-        if hasattr(self, 'color_mode'):
-            coordinates, times = self._calculate_current_color_mode()
-        else:
-            coordinates, times = self._calculate_current_mode()
-        self._update_coordinates(coordinates, times)
-        self._update()
-
-    def set_mode_number(self):
-        self.mode_number = int(self.mode_edit.text()) - 1
-        if hasattr(self, 'color_mode'):
-            coordinates, times = self._calculate_current_color_mode()
-        else:
-            coordinates, times = self._calculate_current_mode()
-        if not isinstance(coordinates, list):
-            coordinates = [coordinates]
-        self._update_coordinates(coordinates, times)
-        self._update()
-
     def _slide(self):
         self.timestep = int(np.ceil(self.slider.value() / 100000 * self.times_end))
         self._update_plot_items()
 
     def _set_refresh_rate(self):
-        self.timer.setInterval(int(self.refresh_rate / max(0.001, self.slider_refresh_rate.value() / 100)))
+        self.timer.setInterval(
+            int(self.refresh_rate / max(0.001, self.slider_refresh_rate.value() / 100))
+        )
 
     def _update(self):
-        '''
+        """
         update viewwidget with new coordinates and colors of plot items
-        '''
+        """
 
         # if animation reaches its end, replay it from the start
         if self.timestep > self.times_end:
@@ -313,16 +296,20 @@ class Visualizer(object):
         self.slider.setValue(int(self.timestep / (self.times_end + 1) * 100000))
         # save frames in case it is requested
         if self.save:
-            self.frames.append(self.w.renderToArray((self.resolution[0], self.resolution[1]), format=GL_RGBA))
+            self.frames.append(
+                self.w.renderToArray(
+                    (self.resolution[0], self.resolution[1]), format=GL_RGBA
+                )
+            )
             if len(self.frames) == len(self.times):
                 self._save_animation(self.save_format)
                 self.save = False
                 self.frames = []
 
     def _update_plot_items(self):
-        '''
+        """
         update coordinates and times of plot items
-        '''
+        """
         if self.rotate:
             self.w.orbit(360 / self.times_end, 0)
 
@@ -332,22 +319,30 @@ class Visualizer(object):
             if self.faces[i] is not None:
                 v = self.coords[i][self.timestep, :, :3]
                 if self.vertex_colors:
-                    self.plot_items[i].setMeshData(vertexes=v, faces=self.faces[i],
-                                                   vertexColors=self.colors[i][self.timestep])
+                    self.plot_items[i].setMeshData(
+                        vertexes=v,
+                        faces=self.faces[i],
+                        vertexColors=self.colors[i][self.timestep],
+                    )
                 else:
-                    self.plot_items[i].setMeshData(vertexes=v, faces=self.faces[i],
-                                                   faceColors=self.colors[i][self.timestep])
+                    self.plot_items[i].setMeshData(
+                        vertexes=v,
+                        faces=self.faces[i],
+                        faceColors=self.colors[i][self.timestep],
+                    )
 
             # for scatter items their positions and their color is updated
             else:
-                self.plot_items[i].setData(color=self.colors[i][self.timestep],
-                                           pos=self.coords[i][self.timestep, :, :3],
-                                           size=self.point_size)
+                self.plot_items[i].setData(
+                    color=self.colors[i][self.timestep],
+                    pos=self.coords[i][self.timestep, :, :3],
+                    size=self.point_size,
+                )
 
     def _add_plot_items(self):
-        '''
+        """
         add plot items (scatter or mesh items) to the view widget for each given simulation
-        '''
+        """
         # create list of plot elements, which will be animated
         self.plot_items = []
         # iterate over all given simulation saved in self.coords
@@ -357,11 +352,15 @@ class Visualizer(object):
                 meshdata = pg.opengl.MeshData(
                     vertexes=coord[0, :, :3],
                     faces=self.faces[i],
-                    faceColors=self.colors[i][0]
+                    faceColors=self.colors[i][0],
                 )
 
-                gl.shaders.Shaders.append(gl.shaders.ShaderProgram(
-                    'lighting', [gl.shaders.VertexShader("""varying vec3 vN;
+                gl.shaders.Shaders.append(
+                    gl.shaders.ShaderProgram(
+                        "lighting",
+                        [
+                            gl.shaders.VertexShader(
+                                """varying vec3 vN;
                                                             varying vec3 v;
                                                             varying vec4 color;
                                                             void main(void)  
@@ -370,9 +369,10 @@ class Visualizer(object):
                                                                vN = normalize(gl_NormalMatrix * gl_Normal);
                                                                color = gl_Color;
                                                                gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;  
-                                                            }"""),
-                                 gl.shaders.FragmentShader(
-                                     """varying vec3 vN;
+                                                            }"""
+                            ),
+                            gl.shaders.FragmentShader(
+                                """varying vec3 vN;
                                                                 varying vec3 v;
                                                                 varying vec4 color;
                                                                 #define MAX_LIGHTS 1
@@ -397,8 +397,10 @@ class Visualizer(object):
                                                                    }
                                                                    gl_FragColor = color * finalColor;
                                                                 }"""
-                                                           )
-                                 ]))
+                            ),
+                        ],
+                    )
+                )
 
                 sp = pg.opengl.GLMeshItem(
                     meshdata=meshdata,
@@ -406,8 +408,8 @@ class Visualizer(object):
                     drawEdges=self.drawEdges,
                     edgeColor=(0.2, 0.2, 0.2, 1),
                     shader=self.shader,
-                    glOptions='opaque',
-                    computeNormals=True
+                    glOptions="opaque",
+                    computeNormals=True,
                 )
 
             # if no faces are given, a scatterplot is used for each animated simulation
@@ -417,20 +419,23 @@ class Visualizer(object):
                     color=self.colors[i][0],
                     size=self.point_size,
                 )
-                sp.setGLOptions('opaque')
+                sp.setGLOptions("opaque")
 
             self.plot_items.append(sp)
             # the plot items must be added to the Viewwidget to be seen
             self.w.addItem(sp)
-            self.w.setSizePolicy(pg.QtWidgets.QSizePolicy.Policy.Expanding, pg.QtWidgets.QSizePolicy.Policy.Expanding)
+            self.w.setSizePolicy(
+                pg.QtWidgets.QSizePolicy.Policy.Expanding,
+                pg.QtWidgets.QSizePolicy.Policy.Expanding,
+            )
 
     def _update_coordinates(self, coordinates, times, camera_distance=None):
-        '''
+        """
         bring given coordinates in the correct form for further processing and calculate colors for all given simulations
         :param coordinates: {list} : list of arrays the x-, y-, and z-coordinates of simulations
                                     {array} each included array is of shape n_timestepsx3
         :param times: {array} n_timestepsx1: vector including all timesteps
-        '''
+        """
 
         if camera_distance is None:
             x_lim, y_lim, z_lim = self.get_axes_limits(coordinates)
@@ -439,14 +444,23 @@ class Visualizer(object):
         self.w.setCameraParams(distance=camera_distance)
 
         # center data around [0, 0, 0] so that camera points on center
-        y_ranges = np.zeros([len(coordinates), ])
+        y_ranges = np.zeros(
+            [
+                len(coordinates),
+            ]
+        )
         if self.shift:
             for i in range(len(y_ranges)):
-                y_ranges[i] = coordinates[i][:, :, 1].max() - coordinates[i][:, :, 1].min()
+                y_ranges[i] = (
+                    coordinates[i][:, :, 1].max() - coordinates[i][:, :, 1].min()
+                )
             y_ranges = [np.array(y_ranges).max()] * np.array(range(0, len(y_ranges)))
             # y_ranges = np.array([0] + y_ranges)
         # Apply shifting
-        coordinates = [XYZ + np.array([0, 1.1 * y_ranges[i], 0]) for i, XYZ in enumerate(coordinates)]
+        coordinates = [
+            XYZ + np.array([0, 1.1 * y_ranges[i], 0])
+            for i, XYZ in enumerate(coordinates)
+        ]
         # Re-center plots after shifting
         all_coordinates = np.concatenate(coordinates, axis=1)
         mean_coordinates = all_coordinates.mean(axis=(0, 1))
@@ -458,13 +472,13 @@ class Visualizer(object):
         # self.app.exec()
 
     def _update_colors(self, color, coordinates, times):
-        '''
+        """
         bring given coordinates in the correct form for further processing and calculate colors for all given simulations
         :param color: {array-like} : including colors for the animation
         :param coordinates: {list} : list of arrays the x-, y-, and z-coordinates of simulations
                                     {array} each included array is of shape n_timestepsx3
         :param times: {array} n_timestepsx1: vector including all timesteps
-        '''
+        """
         n_elements = coordinates[0].shape[1]
         try:
             n_faces = self.faces.shape[0]
@@ -482,72 +496,96 @@ class Visualizer(object):
         if len(color) == len(coordinates):
             for individual_color in color:
                 self.colors.append(
-                    self._get_colors(individual_color, self.color_scale_limits, times, n_colors,
-                                     color_bar=self.color_bar, colormap=self.colormap))
+                    self._get_colors(
+                        individual_color,
+                        self.color_scale_limits,
+                        times,
+                        n_colors,
+                        color_bar=self.color_bar,
+                        colormap=self.colormap,
+                    )
+                )
         # if not we just suppose that each geometry should be colored with the some color
         else:
             for _ in coordinates:
-                self.colors.append(self._get_colors(color, self.color_scale_limits, times, n_colors,
-                                                    color_bar=self.color_bar, colormap=self.colormap))
+                self.colors.append(
+                    self._get_colors(
+                        color,
+                        self.color_scale_limits,
+                        times,
+                        n_colors,
+                        color_bar=self.color_bar,
+                        colormap=self.colormap,
+                    )
+                )
 
-    def _save_animation(self, format='gif'):
+    def _save_animation(self, format="gif"):
         animation_path, name = os.path.split(self.animation_name)
         # set name for saving the gif file
         if not name:
             # if no name for the gif file is given just name it after current time stamp
             name = datetime.now().strftime("%m_%d_%Y__%H_%M_%S")
         # check if results directory exists, if not generate it
-        if not os.path.isdir(f'results/videos/'):
-            os.makedirs(os.path.join(f'results/videos/'))
+        if not os.path.isdir(f"results/videos/"):
+            os.makedirs(os.path.join(f"results/videos/"))
         # check if results directory exists, if not generate it
-        if not os.path.isdir(f'results/videos/{animation_path}/'):
-            os.makedirs(os.path.join(f'results/videos/{animation_path}/'))
+        if not os.path.isdir(f"results/videos/{animation_path}/"):
+            os.makedirs(os.path.join(f"results/videos/{animation_path}/"))
         frames = [Image.fromarray(frame) for frame in self.frames]
 
         if self.save_single_frames:
             png_files = []
             for i, frame in enumerate(frames):
-                logging.info(f'Saving frame {i} of {len(frames)}')
-                png_file = os.path.abspath(f'results/videos/{animation_path}/{name}_{i}.png')
+                logging.info(f"Saving frame {i} of {len(frames)}")
+                png_file = os.path.abspath(
+                    f"results/videos/{animation_path}/{name}_{i}.png"
+                )
                 frame.save(png_file)
                 png_files.append(png_file)
 
-        video_name = os.path.abspath(f'results/videos/{animation_path}/{name}.{format}')
-        logging.info(f'Saving video to {video_name}')
-        if format == 'gif':
+        video_name = os.path.abspath(f"results/videos/{animation_path}/{name}.{format}")
+        logging.info(f"Saving video to {video_name}")
+        if format == "gif":
             # save file as format in results directory
-            frames[0].save(video_name,
-                           append_images=frames[1:],
-                           save_all=True,
-                           disposal=2,
-                           transparency=0,
-                           duration=50, loop=0)
+            frames[0].save(
+                video_name,
+                append_images=frames[1:],
+                save_all=True,
+                disposal=2,
+                transparency=0,
+                duration=50,
+                loop=0,
+            )
         else:
 
             # Define the video codec and frame rate based on the format
-            if format == 'avi':
-                fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            if format == "avi":
+                fourcc = cv2.VideoWriter_fourcc(*"XVID")
                 fps = 30.0
-            elif format == 'mp4':
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            elif format == "mp4":
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
                 fps = 24.0
-            elif format == 'mov':
-                fourcc = cv2.VideoWriter_fourcc(*'jpeg')
+            elif format == "mov":
+                fourcc = cv2.VideoWriter_fourcc(*"jpeg")
                 fps = 30.0
-            elif format == 'wmv':
-                fourcc = cv2.VideoWriter_fourcc(*'WMV2')
+            elif format == "wmv":
+                fourcc = cv2.VideoWriter_fourcc(*"WMV2")
                 fps = 25.0
             else:
-                raise ValueError('Unsupported video format')
+                raise ValueError("Unsupported video format")
 
             frame = np.array(frames[0])
             height, width, layers = frame.shape
             if layers == 4:
                 color_convert = cv2.COLOR_RGBA2BGR
-                logging.warning(" Currently an alpha channel is only supported for gifs")
+                logging.warning(
+                    " Currently an alpha channel is only supported for gifs"
+                )
             elif layers == 3:
                 color_convert = cv2.COLOR_RGB2BGR
-            video = cv2.VideoWriter(video_name, fourcc, fps=fps, frameSize=(width, height))
+            video = cv2.VideoWriter(
+                video_name, fourcc, fps=fps, frameSize=(width, height)
+            )
 
             for frame in frames:
                 opencvImage = cv2.cvtColor(np.array(frame), color_convert)
@@ -555,16 +593,28 @@ class Visualizer(object):
             video.release()
 
         if self.color_scale_limits is not None:
-            color_limits = np.array([[self.color_scale_limits[0], self.color_scale_limits[1]]])
+            color_limits = np.array(
+                [[self.color_scale_limits[0], self.color_scale_limits[1]]]
+            )
             plt.figure(figsize=(4, 0.5))
             plt.imshow(color_limits, cmap=self.colormap)
             plt.gca().set_visible(False)
             cax = plt.axes([0.1, 0.5, 0.8, 0.5])
             plt.colorbar(orientation="horizontal", cax=cax)
-            plt.savefig(os.path.abspath(f'results/videos/{animation_path}/{name}_colorbar.pdf'))
+            plt.savefig(
+                os.path.abspath(f"results/videos/{animation_path}/{name}_colorbar.pdf")
+            )
 
-    def _get_colors(self, color, color_scale_limits, times, n_colors, color_bar='linear', colormap='plasma'):
-        '''
+    def _get_colors(
+        self,
+        color,
+        color_scale_limits,
+        times,
+        n_colors,
+        color_bar="linear",
+        colormap="plasma",
+    ):
+        """
         create list with n_timesteps entries of the size of n_elements, i.e.,
         for each animation step the color of each element is defined in this list
         :param color: description of the color for the elements. This can be:
@@ -580,7 +630,7 @@ class Visualizer(object):
         :param color_scale_limits: {tuplet} range of colorbar
         :param color_bar: {string: 'linear' or 'log'} defines whether the colorbar is scaled linear or logarithmic
         :return colors: {list} containing of color information per timestep
-        '''
+        """
         # amount of time steps which is animated
         n_timesteps = len(times)
 
@@ -594,7 +644,10 @@ class Visualizer(object):
         # if a list of strings for each element is given
         if isinstance(color, list):
             if isinstance(color[0], str):
-                color = [list(mcolors.ColorConverter.to_rgb(color_dict[current_color])) for current_color in color]
+                color = [
+                    list(mcolors.ColorConverter.to_rgb(color_dict[current_color]))
+                    for current_color in color
+                ]
         # make sure color is an numpy array for following manipulations
         if not isinstance(color, np.ndarray):
             color = np.array(color)
@@ -608,18 +661,27 @@ class Visualizer(object):
             self.vertex_colors = False
 
         # in case only single values (like error quantities) are given which must be mapped to a color using a colormap
-        if (color.shape == (n_elements, 1) or color.shape == (n_elements,) or color.shape == (
-                n_timesteps, n_elements) or
-                color.shape == (n_faces, 1) or color.shape == (n_faces,) or color.shape == (n_timesteps, n_faces)):
+        if (
+            color.shape == (n_elements, 1)
+            or color.shape == (n_elements,)
+            or color.shape == (n_timesteps, n_elements)
+            or color.shape == (n_faces, 1)
+            or color.shape == (n_faces,)
+            or color.shape == (n_timesteps, n_faces)
+        ):
             # normalize values between [0, 1] linearly or logarithmic for colormap
             if not color_scale_limits:
                 color_scale_limits = [color.min(), color.max()]
-            if color_bar == 'linear':
-                color_bar = mcolors.Normalize(vmin=color_scale_limits[0], vmax=color_scale_limits[1])
-            elif color_bar == 'log':
+            if color_bar == "linear":
+                color_bar = mcolors.Normalize(
+                    vmin=color_scale_limits[0], vmax=color_scale_limits[1]
+                )
+            elif color_bar == "log":
                 if color_scale_limits[0] == 0:
                     color_scale_limits[0] = color_scale_limits[0] + np.nextafter(0, 1)
-                color_bar = mcolors.LogNorm(vmin=color_scale_limits[0], vmax=color_scale_limits[1])
+                color_bar = mcolors.LogNorm(
+                    vmin=color_scale_limits[0], vmax=color_scale_limits[1]
+                )
             # calculate normalized values
             color_normed = color_bar(color)
             # map normalized values to color
@@ -652,20 +714,34 @@ class Visualizer(object):
             for tick in self.colorbar.listTicks():
                 self.colorbar.item.removeTick(tick[0])
             # create tick values for colorbar in range from 0 to 1
-            tick_values = np.linspace(color_scale_limits[0], color_scale_limits[1], len(colormap.colors))
-            tick_values = [(value - tick_values.min()) / (tick_values.max() - tick_values.min()) for value in
-                           tick_values]
+            tick_values = np.linspace(
+                color_scale_limits[0], color_scale_limits[1], len(colormap.colors)
+            )
+            tick_values = [
+                (value - tick_values.min()) / (tick_values.max() - tick_values.min())
+                for value in tick_values
+            ]
             n_ticks = 5
             tick_values = np.linspace(0, 1, n_ticks)
             for i, value in np.ndenumerate(tick_values):
                 tick_color = colormap(value)
-                tick_color = qt.QtGui.QColor(int(tick_color[0] * 255), int(tick_color[1] * 255), int(tick_color[2] * 255))
+                tick_color = qt.QtGui.QColor(
+                    int(tick_color[0] * 255),
+                    int(tick_color[1] * 255),
+                    int(tick_color[2] * 255),
+                )
                 self.colorbar.item.addTick(x=tick_values[i], color=tick_color)
         return colors
 
-    def animation_to_obj_sequence(self, coordinates, faces, normals=None, dirname="results/obj_sequence/",
-                                  filename="frame",
-                                  frame_rate=None):
+    def animation_to_obj_sequence(
+        self,
+        coordinates,
+        faces,
+        normals=None,
+        dirname="results/obj_sequence/",
+        filename="frame",
+        frame_rate=None,
+    ):
         """
         Save a sequence of obj files for a given animation so that it can be animated in 3d engines like unity.
         """
@@ -682,17 +758,14 @@ class Visualizer(object):
         if normals is None:
             normals = np.empty(coordinates.shape)
             for i, coordinate in enumerate(coordinates):
-                meshdata = pg.opengl.MeshData(
-                    vertexes=coordinate,
-                    faces=faces
-                )
+                meshdata = pg.opengl.MeshData(vertexes=coordinate, faces=faces)
                 normals[i] = meshdata.vertexNormals()
 
         # create series of obj files:
         if not os.path.isdir(dirname):
             os.mkdir(dirname)
         for i in np.arange(0, n_obj, frame_rate):
-            obj_file = open(os.path.join(dirname, f'{filename}_{i:03d}.obj'), 'w')
+            obj_file = open(os.path.join(dirname, f"{filename}_{i:03d}.obj"), "w")
             for item in coordinates[i]:
                 obj_file.write(f"v {item[0]} {item[1]} {item[2]}\n")
 
@@ -701,11 +774,13 @@ class Visualizer(object):
 
             # we increase the face index by 1 as unity starts counting at 1
             for item in faces + 1:
-                obj_file.write(f"f {item[0]}//{item[0]} {item[1]}//{item[1]} {item[2]}//{item[2]}\n")
+                obj_file.write(
+                    f"f {item[0]}//{item[0]} {item[1]}//{item[1]} {item[2]}//{item[2]}\n"
+                )
             obj_file.close()
-            logging.info(f'created .obj file no {int(i / frame_rate)}/{int(n_obj / frame_rate)}')
-
-
+            logging.info(
+                f"created .obj file no {int(i / frame_rate)}/{int(n_obj / frame_rate)}"
+            )
 
     @staticmethod
     def get_axes_limits(XYZ_data):
@@ -742,75 +817,14 @@ class Visualizer(object):
         z_lim = (mean_z - 0.35 * diff, mean_z + 0.35 * diff)
         return x_lim, y_lim, z_lim
 
-    def mode_to_obj_sequence(self, reduction, reference_coordinates, faces, mode_number: int = 0,
-                             amplification: float = 100, dirname="results/obj_sequence",
-                             filename="frame", frame_rate=None):
-        '''
-        function to save a sequence of obj files for a given mode so that it can be animated in 3d engines like unity.
-        :param reduction: instance of class Reduction (which represents certain reduction methods like POD)
-        :param reference_coordinates: reference coordinates to which the mode displacement will be added
-        :param mode_number: {int} default: 0, number of visualized mode (e.g., mode_number=0 will display first mode)
-        :param amplification: {float} default: 100, amplification factor by which the mode will be amplified
-        :param kwargs: for all further parameter look in the definition of animate()
-        :return:
-        '''
-        self.reduction = reduction
-        self.mode_number = mode_number
-        self.mode_ampl = amplification
-        self.reference_coordinates = reference_coordinates
-        coordinates, _ = self._calculate_current_mode()
-        self.animation_to_obj_sequence(coordinates, faces, dirname=dirname, filename=filename,
-                                       frame_rate=frame_rate)
-
-    def _calculate_current_mode(self):
-        '''
-        calculate a mode in physical space
-        :return coordinates: {array} n_timesteps x n_dofs: repeated reference coordinates of the system
-        :return times: {array} n_timesteps x n_dofs: vector containing the animated timesteps
-        '''
-
-        # check if given
-        if self.mode_number >= self.reduction.reduced_order or self.mode_number < 0:
-            dlg = qt.QtWidgets.QDialog()
-            label = qt.QtWidgets.QLabel(dlg)
-            label.setText(f"Mode number {self.mode_number} is out of range [1, {self.reduction.reduced_order}]")
-            button = qt.QtWidgets.QPushButton("ok", dlg)
-            dlg.setWindowTitle("Warning")
-            layout = qt.QtWidgets.QGridLayout()
-            layout.addWidget(label, 0, 0)
-            layout.addWidget(button, 0, 1)
-            button.clicked.connect(dlg.close)
-            dlg.setLayout(layout)
-            dlg.exec()
-            self.mode_number = 1
-            self.mode_edit.setText(str(self.mode_number))
-
-        n_modes = self.reduction.reduced_order_vis
-        mode_selector = np.zeros((1, n_modes))
-        mode_selector.put([self.mode_number], 1)
-
-        if isinstance(self.mode_ampl, np.ndarray):
-            mean, std = self.mode_ampl[self.mode_number]
-            amplifications = np.expand_dims(np.hstack((np.linspace(mean - 2*std, mean + 2*std, num=50),
-                                                       np.linspace(mean + 2*std, mean - 2*std, num=50))), 1) * mode_selector
-        else:
-            # self.mode_ampl
-            amplifications = np.expand_dims(np.hstack((np.linspace(1, -1, num=50), np.linspace(-1, 1, num=50))), 1) * \
-                             mode_selector * self.mode_ampl[:, 1]
-        mode = self.reduction.inverse_transform(amplifications, vis=True)
-        mode = mode.reshape((mode.shape[0], self.reference_coordinates.shape[0], self.reference_coordinates.shape[1]))
-        times = range(100)
-        mode = np.concatenate([mode])
-        return np.concatenate(self.displacements_2_cartesian_coords(mode, self.reference_coordinates)), times
-
     @staticmethod
     def displacements_2_cartesian_coords(displacement, reference_coordinates):
-        '''
+        """
         calculate absolute coordinates by adding displacements to reference coordinates
         :param displacement: time series of displacements
         :param reference_coordinates: reference coordinates of the model
         :return coordinates:
-        '''
+        """
 
         if isinstance(displacement, np.ndarray):
             while len(displacement.shape) < 4:
@@ -822,9 +836,14 @@ class Visualizer(object):
 
         # check if displacement has already correct shape
         if displacement[0].shape[1:] != reference_coordinates.shape:
-            displacement = [disp.reshape([disp.shape[0], *reference_coordinates.shape]) for disp in displacement]
+            displacement = [
+                disp.reshape([disp.shape[0], *reference_coordinates.shape])
+                for disp in displacement
+            ]
 
         # add displacement to reference_coordinates
-        coordinates = [(np.expand_dims(reference_coordinates, 0) + disp) for disp in displacement]
+        coordinates = [
+            (np.expand_dims(reference_coordinates, 0) + disp) for disp in displacement
+        ]
 
         return coordinates

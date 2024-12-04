@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "visualizer-3d"
-version = "0.3.2"
+version = "0.3.4"
 authors = [
   { name="Jonas Kneifl", email="jonas.kneifl@itm.uni-stuttgart.com" },
 ]
