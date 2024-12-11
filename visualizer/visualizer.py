@@ -481,7 +481,7 @@ class Visualizer(object):
         """
         n_elements = coordinates[0].shape[1]
         try:
-            n_faces = self.faces.shape[0]
+            n_faces = self.faces[0].shape[0]
         except:
             n_faces = 0
         n_colors = [n_elements, n_faces]
